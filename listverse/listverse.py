@@ -1,15 +1,14 @@
-import random, requests, pydoc, textwrap, shutil, sys
+import random, requests, pydoc, textwrap, sys
 from bs4 import BeautifulSoup
 from lxml import html
 from constants import HEADERS
 
 class Listverse:
     """
-    A class to retrieve the latest random article content from Listverse
+    A class to retrieve the a random article from Listverse
     """
     def __init__(self):
         self.sitemap_url = "https://listverse.com/category-sitemap.xml"
-        self.terminal_width = shutil.get_terminal_size().columns
         self.urls_excluded = ("https://listverse.com/shopping/", "https://listverse.com/podcast", "https://listverse.com/site-news/")
 
     def _get_rand_url_from_category_sitemap(self) -> str:
@@ -21,8 +20,7 @@ class Listverse:
             response.raise_for_status()
             soup = BeautifulSoup(response.text, features='xml')
 
-            # SXML itemaps use <loc> tags for URLs
-            # excluding /podcast since its articles links are broken
+            # XML sitemaps use <loc> tags for URLs
             links = [
                 loc.text.strip()
                 for loc in soup.find_all('loc')
@@ -32,7 +30,6 @@ class Listverse:
 
             # Return a random link from the list of extracted strings
             selected_link = random.choice(links)
-            # print(len(links)) # returns 49 links * 15 <h3> article header tags = 735 articles
             print(f"Selected Category URL: {selected_link}")
             return selected_link
         except Exception as e:
@@ -162,9 +159,7 @@ class Listverse:
             except ValueError:
                 continue
             article = self._get_article_subheader_content(choice=choice, tree=tree)
-            # wrapped_article = textwrap.fill(article, width=self.terminal_width)
             wrapped_article = textwrap.fill(article, width=70)
-
             pydoc.pager(wrapped_article)
 
     def _get_total_pages_for_category(self, category_url: str) -> int:
